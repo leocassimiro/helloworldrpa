@@ -1,0 +1,10 @@
+http:
+  host: "0.0.0.0"
+  port: "8085"
+  
+rpa:
+  host:  "********" #your-domain.rpa.mulesoft.com
+  port:  "443"
+  protocol:  "HTTPS"
+  xApiKey: "********" #User API Key
+  basePath: "/rpa/api/v1"
