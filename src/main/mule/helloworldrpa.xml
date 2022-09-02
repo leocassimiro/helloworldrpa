@@ -7,12 +7,13 @@ http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/htt
 http://www.mulesoft.org/schema/mule/hello-world http://www.mulesoft.org/schema/mule/hello-world/current/mule-hello-world.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
 	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="c4f5e37f-2ce8-4f01-9b80-81e09d657c05" >
-		<http:listener-connection host="0.0.0.0" port="8085" />
+		<http:listener-connection host="${http.host}" port="${http.port}" />
 	</http:listener-config>
 	<configuration-properties doc:name="Configuration properties" doc:id="437ffa6d-d02a-49d1-89c5-15d14d02064a" file="properties.yaml" />
 	<hello-world:config name="Hello_World_Config" doc:name="Hello World Config" doc:id="14ec77fd-0e84-495e-b433-6433569ad5ac" property_host="${rpa.host}" property_port="${rpa.port}" property_protocol="${rpa.protocol}" property_x-apikey="${rpa.xApiKey}" property_basePath="${rpa.basePath}" />
-	<flow name="helloworldrpaFlow" doc:id="9fd71043-4d5b-4287-8183-ce0451585c1e" >
+	<flow name="HelloWorldRpaFlow" doc:id="9fd71043-4d5b-4287-8183-ce0451585c1e" >
 		<http:listener doc:name="Listener" doc:id="4d21eea1-081c-473c-bf3c-498f9d6544fe" config-ref="HTTP_Listener_config" path="/hello-world"/>
+		<logger level="INFO" doc:name="Invoke RPA Bot" doc:id="c0837d65-b546-4b65-80d9-54bd78576d20" message="Invoke RPA Bot"/>
 		<ee:transform doc:name="Set Payload" doc:id="206b242c-4f66-4605-9f81-967e5db2cc51" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
@@ -20,6 +21,7 @@ output application/json
 ---
 {
   "executionId": correlationId,
+  "callbackUri": "http://helloworldrpa.ir-e1.cloudhub.io/callback",
   "inputArguments": {
     "message": "Hello World - Mulesoft RPA"
   }
@@ -28,6 +30,20 @@ output application/json
 		</ee:transform>
 		<hello-world:startprocess doc:name="startProcess" doc:id="58f68fcd-0b94-4eb9-9af8-d27078e857cc" config-ref="Hello_World_Config"/>
 		<hello-world:getprocessesexecutionstatus doc:name="getProcessesExecutionStatus" doc:id="af9e7db0-e9e6-47e3-91ef-0054e783daa8" config-ref="Hello_World_Config" execution-id="#[correlationId]"/>
+		<logger level="INFO" doc:name="Get Processes Execution Status" doc:id="98684586-806f-42f3-bbe5-05395664f56a" message="#[payload]"/>
+	</flow>
+	<flow name="CallbackRPAFlow" doc:id="aa33406b-f71a-40bc-9824-b61d38455811" >
+		<http:listener doc:name="Listener" doc:id="364cff60-e71d-47b1-80a8-a47f8075e8f4" config-ref="HTTP_Listener_config" path="/callback"/>
+		<logger level="INFO" doc:name="Callback Logger" doc:id="60851b01-cfe2-4fe9-9a24-98a7d9ee956a" message="Callback Logger"/>
+		<ee:transform doc:name="Set Payload" doc:id="b975921c-6c0d-4f73-ac2c-a322527323ad" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Payload" doc:id="3a38b650-55ee-4ffe-9dc3-db0a7af7f003" message="#[payload]"/>
 	</flow>
 	<!-- <flow name="helloworldrpaFlow1" doc:id="c8713a09-7e8e-4ac7-93e5-971fe52661cc" >
 		<http:listener doc:name="Listener" doc:id="ae43c4b0-ac7e-451e-830c-d1755f502988" config-ref="HTTP_Listener_config" path="/rpacallback"/>
